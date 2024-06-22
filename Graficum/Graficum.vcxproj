@@ -134,6 +134,15 @@
   <ItemGroup>
     <ClCompile Include="gl.c" />
     <ClCompile Include="Graficum.cpp" />
+    <ClCompile Include="GrDebug.cpp" />
+    <ClCompile Include="GrUtils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GrDebug.h" />
+    <ClInclude Include="GrUtils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="gl.log" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
