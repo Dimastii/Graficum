@@ -5,9 +5,13 @@
 
 #include "GLFW/linmath.h"
 
+#include "GrDebug.h"
+#include "GrUtils.h"
+
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <iostream>
 
 typedef struct Vertex
 {
@@ -56,21 +60,45 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 int main(void)
 {
-    glfwSetErrorCallback(error_callback);
+    glfwSetErrorCallback(glfw_error_callback);
 
     if (!glfwInit())
         exit(EXIT_FAILURE);
-
+    gl_log("Start\n");
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+    //glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_FOCUSED, GLFW_FALSE);
 
-    GLFWwindow* window = glfwCreateWindow(640, 480, "OpenGL Triangle", NULL, NULL);
+	glfwWindowHint(GLFW_SAMPLES, 4);
+
+	glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+
+
+    GLFWmonitor *monitor= glfwGetPrimaryMonitor();
+
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    size_t monitor_w = mode->width;
+    size_t monitor_h = mode->height;
+
+	std::cout << "Resolution: " << monitor_w << "x" << monitor_h << std::endl;
+    size_t win_w = 640;
+    size_t win_h = 480;
+
+    glfwWindowHint(GLFW_POSITION_X, 0/*monitor_w - win_w*/);
+    glfwWindowHint(GLFW_POSITION_Y, monitor_h - win_h);
+
+
+    GLFWwindow* window = glfwCreateWindow(win_w, win_h, "OpenGL Triangle", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
+
+    glfwSetWindowOpacity(window, 0.5f);
 
     glfwSetKeyCallback(window, key_callback);
 
@@ -88,10 +116,12 @@ int main(void)
     const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
     glCompileShader(vertex_shader);
+    _check_compile_shader_error(vertex_shader);
 
     const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
     glCompileShader(fragment_shader);
+    _check_compile_shader_error(fragment_shader);
 
     const GLuint program = glCreateProgram();
     glAttachShader(program, vertex_shader);
@@ -113,7 +143,9 @@ int main(void)
         sizeof(Vertex), (void*)offsetof(Vertex, col));
 
     while (!glfwWindowShouldClose(window))
-    {
+    {     
+        _update_fps_counter(window);
+        float speed = (float)glfwGetTime() / 4;
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         const float ratio = width / (float)height;
@@ -123,7 +155,7 @@ int main(void)
 
         mat4x4 m, p, mvp;
         mat4x4_identity(m);
-        mat4x4_rotate_Z(m, m, (float)glfwGetTime());
+        mat4x4_rotate_Z(m, m, speed);
         mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
         mat4x4_mul(mvp, p, m);
 
