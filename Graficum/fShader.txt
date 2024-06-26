@@ -1,0 +1,8 @@
+#version 400
+in vec3 color;
+in vec2 position;
+out vec4 fragment;
+void main()
+{
+    fragment = vec4(position, color.y, 1.0);
+}
